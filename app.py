@@ -1,12 +1,11 @@
 import streamlit as st
 from openai import OpenAI
-from youtubesearchpython import VideosSearch
 
 # ================== CONFIG ==================
 st.set_page_config(page_title="SkillPilot AI", layout="wide")
 
 st.title("🌍 SkillPilot AI")
-st.markdown("AI-powered career roadmap & guidance platform")
+st.markdown("AI-powered career roadmap & guidance platform 🤖")
 
 # ================== API ==================
 client = OpenAI(
@@ -14,8 +13,17 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
+# ================== LANGUAGE ==================
+language = st.sidebar.selectbox(
+    "🌐 Response Language",
+    ["English", "Urdu"]
+)
+
 def ask_ai(prompt):
     try:
+        if language == "Urdu":
+            prompt = "Answer in simple Urdu:\n\n" + prompt
+
         response = client.responses.create(
             model="openai/gpt-oss-20b",
             input=prompt
@@ -51,7 +59,7 @@ generate = st.sidebar.button("🚀 Generate")
 
 # ================== TABS ==================
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["🗺 Roadmap", "📊 Scope", "📚 Resources", "🤖 AI Mentor", "🆚 Compare"]
+    ["🗺 Roadmap", "📊 Scope", "📚 Resources", "🤖 Mentor", "🆚 Compare"]
 )
 
 # ================== ROADMAP ==================
@@ -60,110 +68,92 @@ with tab1:
         st.subheader("📍 Learning Roadmap")
 
         with st.spinner("Generating roadmap..."):
-            roadmap_prompt = f"""
-            Create a CLEAN roadmap for {skill}:
+            prompt = f"""
+            Create a structured roadmap for {skill}:
 
-            ## Beginner
+            Beginner:
             - topics
             - tools
 
-            ## Intermediate
+            Intermediate:
             - projects
 
-            ## Advanced
+            Advanced:
             - real-world projects
 
-            ## Timeline (3-6 months)
+            Timeline: 3-6 months
             """
 
-            result = ask_ai(roadmap_prompt)
-            st.markdown(result)
+            st.markdown(ask_ai(prompt))
 
-            st.download_button("📥 Download Roadmap", result)
-
-# ================== CAREER SCOPE ==================
+# ================== SCOPE ==================
 with tab2:
     if generate:
-        st.subheader("📊 Career Analysis")
+        st.subheader("📊 Career Scope")
 
-        with st.spinner("Analyzing career..."):
-            scope_prompt = f"""
+        with st.spinner("Analyzing..."):
+            prompt = f"""
             Analyze {skill}:
 
             - Demand
-            - Salary Range
-            - Future Scope
+            - Salary range
+            - Future scope
             - Difficulty
             """
 
-            result = ask_ai(scope_prompt)
-            st.markdown(result)
+            st.markdown(ask_ai(prompt))
 
         st.markdown("---")
 
         st.subheader("⚠ Drawbacks")
 
-        drawback_prompt = f"""
+        prompt2 = f"""
         Drawbacks of {skill}:
         - competition
         - time required
-        - mistakes
+        - challenges
         """
 
-        st.markdown(ask_ai(drawback_prompt))
+        st.markdown(ask_ai(prompt2))
 
 # ================== RESOURCES ==================
 with tab3:
     if generate:
         st.subheader("📚 Learning Resources")
 
-        try:
-            videos_search = VideosSearch(f"{skill} full course tutorial", limit=5)
-            results = videos_search.result()
+        search_url = f"https://www.youtube.com/results?search_query={skill}+full+course"
 
-            if results and "result" in results:
-                for video in results["result"]:
-                    title = video.get("title", "No title")
-                    link = video.get("link", "")
+        st.markdown("### 🎥 Best Learning Resources")
+        st.markdown(f"[👉 Click here to watch courses on YouTube]({search_url})")
 
-                    if link:
-                        st.markdown(f"### 🎥 {title}")
-                        st.video(link)
-                        st.markdown("---")
-            else:
-                st.warning("No videos found")
+        st.info("Resources are generated using YouTube search for stability.")
 
-        except Exception as e:
-            st.error(f"Error: {e}")
-
-# ================== AI MENTOR ==================
+# ================== MENTOR ==================
 with tab4:
-    st.subheader("🤖 AI Career Mentor")
+    st.subheader("🤖 AI Mentor")
 
-    user_question = st.text_input("Ask anything...")
+    question = st.text_input("Ask anything about your career")
 
-    if user_question:
+    if question:
         with st.spinner("Thinking..."):
-            mentor_prompt = f"""
+            prompt = f"""
             You are a career mentor.
 
             Interests: {interests}
             Strengths: {strengths}
 
-            Question: {user_question}
-
-            Give clear and practical advice.
+            Question: {question}
             """
 
-            st.markdown(ask_ai(mentor_prompt))
+            st.markdown(ask_ai(prompt))
 
 # ================== COMPARISON ==================
 with tab5:
     if generate and compare_skill:
         st.subheader("⚖ Skill Comparison")
 
-        with st.spinner("Comparing skills..."):
-            compare_prompt = f"""
+        with st.spinner("Comparing..."):
+            prompt = f"""
             Compare {skill} vs {compare_skill}:
 
             - Demand
@@ -172,37 +162,37 @@ with tab5:
             - Future scope
             """
 
-            st.markdown(ask_ai(compare_prompt))
+            st.markdown(ask_ai(prompt))
 
 # ================== PERSONAL FIT ==================
 if generate:
     st.markdown("---")
     st.subheader("🧠 Is this right for you?")
 
-    fit_prompt = f"""
+    prompt = f"""
+    User:
     Interests: {interests}
     Strengths: {strengths}
 
     Evaluate {skill}:
-
-    - Verdict (Good/Risky/Not Recommended)
+    - Good / Risky / Not Recommended
     - Reason
     """
 
-    st.markdown(ask_ai(fit_prompt))
+    st.markdown(ask_ai(prompt))
 
-# ================== SKILL TEST RESULT ==================
+# ================== SKILL TEST ==================
 if generate:
     st.markdown("---")
-    st.subheader("🧪 Skill Test Recommendation")
+    st.subheader("🧪 Skill Test Result")
 
-    test_prompt = f"""
+    prompt = f"""
     Answers:
     Problem solving: {q1}
     Creativity: {q2}
     Math: {q3}
 
-    Suggest best career and explain.
+    Suggest best career path with reasoning.
     """
 
-    st.markdown(ask_ai(test_prompt))
+    st.markdown(ask_ai(prompt))
