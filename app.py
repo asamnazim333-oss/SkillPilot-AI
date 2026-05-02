@@ -5,7 +5,7 @@ from openai import OpenAI
 st.set_page_config(page_title="SkillPilot AI", layout="wide")
 
 st.title("🌍 SkillPilot AI")
-st.markdown("AI-powered career roadmap & guidance platform 🤖")
+st.markdown("AI-powered career decision & roadmap system 🤖")
 
 # ================== API ==================
 client = OpenAI(
@@ -13,175 +13,160 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
-# ================== LANGUAGE ==================
-language = st.sidebar.selectbox(
-    "🌐 Response Language",
-    ["English", "Urdu"]
-)
+language = st.sidebar.selectbox("🌐 Language", ["English", "Urdu"])
 
 def ask_ai(prompt):
-    try:
-        if language == "Urdu":
-            prompt = "Answer in simple Urdu:\n\n" + prompt
+    if language == "Urdu":
+        prompt = "Answer in simple Urdu:\n\n" + prompt
 
-        response = client.responses.create(
-            model="openai/gpt-oss-20b",
-            input=prompt
-        )
-        return response.output_text
-    except Exception as e:
-        return f"Error: {e}"
+    response = client.responses.create(
+        model="openai/gpt-oss-20b",
+        input=prompt
+    )
+    return response.output_text
 
-# ================== SIDEBAR ==================
+
+# ================== SIDEBAR INPUT ==================
 st.sidebar.header("🎯 Input")
 
-skill = st.sidebar.text_input("Enter Skill / Career", "Web Development")
-
-compare_skill = st.sidebar.text_input("Compare with another skill (optional)")
+skill = st.sidebar.text_input("Enter Skill", "Web Development")
 
 interests = st.sidebar.multiselect(
-    "Your Interests",
+    "Interests",
     ["Coding", "Design", "Math", "AI", "Security", "Creativity"]
 )
 
 strengths = st.sidebar.multiselect(
-    "Your Strengths",
+    "Strengths",
     ["Logic", "Problem Solving", "Communication", "Creativity"]
 )
 
-st.sidebar.markdown("### 🧪 Quick Skill Test")
+# ================== SKILL TEST (UPGRADED) ==================
+st.sidebar.markdown("### 🧪 Skill Test")
 
 q1 = st.sidebar.radio("Do you enjoy problem solving?", ["Yes", "No"])
 q2 = st.sidebar.radio("Do you like creativity?", ["Yes", "No"])
 q3 = st.sidebar.radio("Are you comfortable with math?", ["Yes", "No"])
 
-generate = st.sidebar.button("🚀 Generate")
+generate = st.sidebar.button("🚀 Generate Analysis")
+suggest = st.sidebar.button("🎯 Suggest Best Career")
+
+compare_skill = st.sidebar.text_input("Compare Skill (optional)")
 
 # ================== TABS ==================
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["🗺 Roadmap", "📊 Scope", "📚 Resources", "🤖 Mentor", "🆚 Compare"]
+    ["🗺 Roadmap", "📊 Career Score", "📚 Resources", "🤖 Mentor", "🧠 Decision Mode"]
 )
 
-# ================== ROADMAP ==================
+# ================== 1. ROADMAP ==================
 with tab1:
     if generate:
-        st.subheader("📍 Learning Roadmap")
+        st.subheader("📍 Structured Roadmap")
 
-        with st.spinner("Generating roadmap..."):
-            prompt = f"""
-            Create a structured roadmap for {skill}:
+        prompt = f"""
+        Create structured roadmap for {skill}:
 
-            Beginner:
-            - topics
-            - tools
+        Beginner:
+        - topics
 
-            Intermediate:
-            - projects
+        Intermediate:
+        - topics
 
-            Advanced:
-            - real-world projects
+        Advanced:
+        - real projects
 
-            Timeline: 3-6 months
-            """
+        Timeline: 3-6 months
+        """
 
-            st.markdown(ask_ai(prompt))
+        st.markdown(ask_ai(prompt))
 
-# ================== SCOPE ==================
+# ================== 2. CAREER SCORE ==================
 with tab2:
     if generate:
-        st.subheader("📊 Career Scope")
+        st.subheader("📊 Career Score System")
 
-        with st.spinner("Analyzing..."):
-            prompt = f"""
-            Analyze {skill}:
+        prompt = f"""
+        Evaluate {skill} and return:
 
-            - Demand
-            - Salary range
-            - Future scope
-            - Difficulty
-            """
+        - Career Score (0-100)
+        - Demand (High/Medium/Low)
+        - Growth Level
+        - Risk Level
+        - Salary Range
+        - Future Scope
+        """
 
-            st.markdown(ask_ai(prompt))
+        st.markdown(ask_ai(prompt))
 
         st.markdown("---")
-
         st.subheader("⚠ Drawbacks")
 
         prompt2 = f"""
         Drawbacks of {skill}:
         - competition
+        - difficulty
         - time required
-        - challenges
+        - common mistakes
         """
 
         st.markdown(ask_ai(prompt2))
 
-# ================== RESOURCES ==================
+# ================== 3. RESOURCES ==================
 with tab3:
     if generate:
         st.subheader("📚 Learning Resources")
 
-        search_url = f"https://www.youtube.com/results?search_query={skill}+full+course"
+        st.markdown(
+            f"👉 [Watch YouTube Courses](https://www.youtube.com/results?search_query={skill}+full+course)"
+        )
 
-        st.markdown("### 🎥 Best Learning Resources")
-        st.markdown(f"[👉 Click here to watch courses on YouTube]({search_url})")
-
-        st.info("Resources are generated using YouTube search for stability.")
-
-# ================== MENTOR ==================
+# ================== 4. AI MENTOR ==================
 with tab4:
     st.subheader("🤖 AI Mentor")
 
-    question = st.text_input("Ask anything about your career")
+    question = st.text_input("Ask career question")
 
     if question:
-        with st.spinner("Thinking..."):
-            prompt = f"""
-            You are a career mentor.
+        prompt = f"""
+        User interests: {interests}
+        User strengths: {strengths}
 
-            Interests: {interests}
-            Strengths: {strengths}
+        Question: {question}
+        """
 
-            Question: {question}
-            """
+        st.markdown(ask_ai(prompt))
 
-            st.markdown(ask_ai(prompt))
-
-# ================== COMPARISON ==================
+# ================== 5. DECISION MODE ==================
 with tab5:
-    if generate and compare_skill:
-        st.subheader("⚖ Skill Comparison")
+    if generate:
+        st.subheader("🧠 Is this right for you?")
 
-        with st.spinner("Comparing..."):
-            prompt = f"""
-            Compare {skill} vs {compare_skill}:
+        prompt = f"""
+        User:
+        Interests: {interests}
+        Strengths: {strengths}
 
-            - Demand
-            - Salary
-            - Difficulty
-            - Future scope
-            """
+        Evaluate {skill}:
+        - Good / Risky / Not Recommended
+        - Reason
+        """
 
-            st.markdown(ask_ai(prompt))
+        st.markdown(ask_ai(prompt))
 
-# ================== PERSONAL FIT ==================
-if generate:
-    st.markdown("---")
-    st.subheader("🧠 Is this right for you?")
+    if suggest:
+        st.subheader("🎯 Best Career Suggestions")
 
-    prompt = f"""
-    User:
-    Interests: {interests}
-    Strengths: {strengths}
+        prompt = f"""
+        Based on:
+        Interests: {interests}
+        Strengths: {strengths}
 
-    Evaluate {skill}:
-    - Good / Risky / Not Recommended
-    - Reason
-    """
+        Suggest top 3 career paths with reasons.
+        """
 
-    st.markdown(ask_ai(prompt))
+        st.markdown(ask_ai(prompt))
 
-# ================== SKILL TEST ==================
+# ================== SKILL TEST RESULT ==================
 if generate:
     st.markdown("---")
     st.subheader("🧪 Skill Test Result")
@@ -192,7 +177,7 @@ if generate:
     Creativity: {q2}
     Math: {q3}
 
-    Suggest best career path with reasoning.
+    Suggest best career path and explain why.
     """
 
     st.markdown(ask_ai(prompt))
