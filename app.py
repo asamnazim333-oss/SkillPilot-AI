@@ -5,7 +5,7 @@ from openai import OpenAI
 st.set_page_config(page_title="SkillPilot AI", layout="wide")
 
 st.title("🌍 SkillPilot AI")
-st.markdown("AI-powered career roadmap & decision system 🤖")
+st.markdown("AI-powered career decision & roadmap system 🤖")
 
 # ================== API ==================
 client = OpenAI(
@@ -13,7 +13,6 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
-# ================== LANGUAGE ==================
 language = st.sidebar.selectbox("🌐 Language", ["English", "Urdu"])
 
 def ask_ai(prompt):
@@ -26,8 +25,7 @@ def ask_ai(prompt):
     )
     return response.output_text
 
-
-# ================== SIDEBAR ==================
+# ================== INPUT ==================
 st.sidebar.header("🎯 Input")
 
 skill = st.sidebar.text_input("Enter Skill", "Web Development")
@@ -43,34 +41,32 @@ strengths = st.sidebar.multiselect(
     ["Logic", "Problem Solving", "Communication", "Creativity"]
 )
 
-# ================== SKILL TEST ==================
-st.sidebar.markdown("### 🧪 Skill Test")
-
-q1 = st.sidebar.radio("Do you enjoy problem solving?", ["Yes", "No"])
-q2 = st.sidebar.radio("Do you like creativity?", ["Yes", "No"])
-q3 = st.sidebar.radio("Are you comfortable with math?", ["Yes", "No"])
-
 generate = st.sidebar.button("🚀 Generate Analysis")
-show_test = st.sidebar.button("🧪 Show Skill Test Result")
+show_test = st.sidebar.button("🧪 Skill Test Result")
+
+q1 = st.sidebar.radio("Problem Solving?", ["Yes", "No"])
+q2 = st.sidebar.radio("Creativity?", ["Yes", "No"])
+q3 = st.sidebar.radio("Math Comfort?", ["Yes", "No"])
 
 # ================== TABS ==================
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
     ["🗺 Roadmap", "📊 Career Score", "📚 Resources", "🤖 Mentor", "🆚 Compare"]
 )
 
-# ================== 1. ROADMAP ==================
+# ================== ROADMAP ==================
 with tab1:
     if generate:
         st.subheader("📍 Roadmap")
 
         prompt = f"""
         Create structured roadmap for {skill}:
-        Beginner, Intermediate, Advanced, Timeline (3-6 months)
+        Beginner → Intermediate → Advanced
+        Timeline: 3-6 months
         """
 
         st.markdown(ask_ai(prompt))
 
-# ================== 2. CAREER SCORE ==================
+# ================== CAREER SCORE ==================
 with tab2:
     if generate:
         st.subheader("📊 Career Analysis")
@@ -87,49 +83,36 @@ with tab2:
 
         st.markdown(ask_ai(prompt))
 
-        st.markdown("---")
-        st.subheader("⚠ Drawbacks")
-
-        prompt2 = f"""
-        Drawbacks of {skill}:
-        - competition
-        - learning difficulty
-        - time required
-        """
-
-        st.markdown(ask_ai(prompt2))
-
-# ================== 3. RESOURCES ==================
+# ================== RESOURCES ==================
 with tab3:
     if generate:
         st.subheader("📚 Learning Resources")
 
         st.markdown(
-            f"👉 [Watch Full Courses on YouTube](https://www.youtube.com/results?search_query={skill}+full+course)"
+            f"👉 [YouTube Courses](https://www.youtube.com/results?search_query={skill}+full+course)"
         )
 
-# ================== 4. MENTOR ==================
+# ================== MENTOR ==================
 with tab4:
     st.subheader("🤖 AI Mentor")
 
-    question = st.text_input("Ask anything about career")
+    question = st.text_input("Ask anything")
 
     if question:
         prompt = f"""
-        User interests: {interests}
-        User strengths: {strengths}
+        Interests: {interests}
+        Strengths: {strengths}
 
         Question: {question}
         """
 
         st.markdown(ask_ai(prompt))
 
-# ================== 5. COMPARISON ==================
+# ================== COMPARE ==================
 with tab5:
-    st.subheader("🆚 Skill Comparison")
+    st.subheader("🆚 Comparison")
 
     if generate and compare_skill:
-
         prompt = f"""
         Compare {skill} vs {compare_skill}:
 
@@ -137,26 +120,25 @@ with tab5:
         - Salary
         - Difficulty
         - Future Scope
-        - Which is better and why
         """
 
         st.markdown(ask_ai(prompt))
 
     elif generate:
-        st.info("Please enter a skill to compare in sidebar")
+        st.info("Enter a skill to compare")
 
-# ================== SKILL TEST RESULT ==================
+# ================== SKILL TEST ==================
 if show_test:
     st.markdown("---")
     st.subheader("🧪 Skill Test Result")
 
     prompt = f"""
     Answers:
-    Problem solving: {q1}
+    Problem Solving: {q1}
     Creativity: {q2}
     Math: {q3}
 
-    Suggest best career path and explain why.
+    Suggest best career path and explain.
     """
 
     st.markdown(ask_ai(prompt))
