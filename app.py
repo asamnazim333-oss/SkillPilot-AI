@@ -1,11 +1,13 @@
 import streamlit as st
 from openai import OpenAI
+import plotly.express as px
+import pandas as pd
 
 # ================== CONFIG ==================
 st.set_page_config(page_title="SkillPilot AI", layout="wide")
 
 st.title("🌍 SkillPilot AI")
-st.markdown("### ⚡ Career Decision Dashboard (AI-Powered)")
+st.markdown("### 💎 AI Career Decision Dashboard")
 
 # ================== API ==================
 client = OpenAI(
@@ -13,12 +15,7 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
-language = st.sidebar.selectbox("🌐 Language", ["English", "Urdu"])
-
 def ask_ai(prompt):
-    if language == "Urdu":
-        prompt = "Answer in simple Urdu:\n\n" + prompt
-
     response = client.responses.create(
         model="openai/gpt-oss-20b",
         input=prompt
@@ -26,42 +23,30 @@ def ask_ai(prompt):
     return response.output_text
 
 
-# ================== SIDEBAR ==================
-st.sidebar.header("🎯 Input")
+# ================== INPUT ==================
+skill = st.sidebar.text_input("Skill", "Web Development")
+compare = st.sidebar.text_input("Compare Skill", "AI")
 
-skill = st.sidebar.text_input("Primary Skill", "Web Development")
-compare_skill = st.sidebar.text_input("Compare Skill", "AI")
-
-interests = st.sidebar.multiselect(
-    "Interests",
-    ["Coding", "Design", "Math", "AI", "Security", "Creativity"]
-)
-
-strengths = st.sidebar.multiselect(
-    "Strengths",
-    ["Logic", "Problem Solving", "Communication", "Creativity"]
-)
-
-generate = st.sidebar.button("🚀 Generate Dashboard")
+generate = st.sidebar.button("🚀 Generate")
 
 
-# ================== MOCK MARKET DATA ==================
-def market_data(skill):
+# ================== MOCK DATA ==================
+def get_data(skill):
     data = {
         "Web Development": (85, 80, 60),
         "AI": (95, 90, 75),
         "Cybersecurity": (90, 85, 80),
-        "Data Science": (88, 87, 70),
     }
-    return data.get(skill, (75, 70, 65))
+    return data.get(skill, (75, 70, 60))
 
 
-# ================== MAIN DASHBOARD ==================
+# ================== MAIN ==================
 if generate:
 
-    st.markdown("## 📊 Career Dashboard")
+    score, demand, difficulty = get_data(skill)
 
-    score, demand, difficulty = market_data(skill)
+    # ================== 💎 CARDS ==================
+    st.subheader("📊 Career Dashboard")
 
     col1, col2, col3 = st.columns(3)
 
@@ -71,104 +56,72 @@ if generate:
 
     st.markdown("---")
 
-    # ================== VISUAL BARS ==================
-    st.subheader("📈 Career Insights")
+    # ================== 📊 PLOTLY GRAPH ==================
+    st.subheader("📈 Career Visualization")
 
-    st.progress(score / 100)
-    st.caption("Overall Career Strength")
+    df = pd.DataFrame({
+        "Metric": ["Score", "Demand", "Difficulty"],
+        "Value": [score, demand, difficulty]
+    })
 
-    st.progress(demand / 100)
-    st.caption("Market Demand")
-
-    st.progress(difficulty / 100)
-    st.caption("Difficulty Level")
+    fig = px.bar(df, x="Metric", y="Value", color="Metric", title="Career Analysis")
+    st.plotly_chart(fig)
 
     st.markdown("---")
 
-    # ================== AI REASONING (SHORT) ==================
+    # ================== 🧠 AI DECISION ==================
     st.subheader("🧠 AI Decision")
 
     prompt = f"""
-    Give ONLY:
-    1. Is this a good career (Yes/No)
-    2. One line reason
-    3. Final recommendation
-
-    Skill: {skill}
-    Interests: {interests}
-    Strengths: {strengths}
+    Give:
+    - Is {skill} a good career?
+    - One line reason
+    - Final recommendation
     """
 
     st.success(ask_ai(prompt))
 
     st.markdown("---")
 
-    # ================== ROADMAP ==================
-    st.subheader("🗺 Quick Roadmap")
+    # ================== 🗺 ROADMAP ==================
+    st.subheader("🗺 Roadmap")
 
-    roadmap_prompt = f"""
-    Give only bullet roadmap:
+    roadmap = f"""
     Beginner → Intermediate → Advanced for {skill}
     """
 
-    st.write(ask_ai(roadmap_prompt))
+    st.write(roadmap)
 
     st.markdown("---")
 
-    # ================== RESOURCES (CLICKABLE) ==================
-    st.subheader("📚 Learning Resources")
+    # ================== 📚 RESOURCES ==================
+    st.subheader("📚 Resources")
 
     st.markdown(f"""
-    - 🎥 [YouTube Courses](https://www.youtube.com/results?search_query={skill}+full+course)
-    - 📘 Free Learning Guides
+    - 🎥 [YouTube](https://www.youtube.com/results?search_query={skill}+course)
     - 💻 GitHub Projects
-    - 🧪 Practice Projects
+    - 🧪 Practice Work
     """)
-
-    st.markdown("---")
-
-    # ================== JOB INSIGHT ==================
-    st.subheader("🌍 Job Market Insight")
-
-    st.info(f"""
-    🔹 {skill} has strong global demand  
-    🔹 Freelancing opportunities available  
-    🔹 Remote jobs increasing  
-    🔹 Industry growth is positive
-    """)
-
 
 # ================== COMPARISON ==================
 st.markdown("---")
-st.header("🆚 Skill Comparison Dashboard")
+st.header("🆚 Comparison")
 
-if compare_skill:
+if compare:
 
-    s1 = market_data(skill)
-    s2 = market_data(compare_skill)
+    s1 = get_data(skill)
+    s2 = get_data(compare)
 
-    col1, col2 = st.columns(2)
+    df2 = pd.DataFrame({
+        "Skill": [skill, compare],
+        "Score": [s1[0], s2[0]],
+        "Demand": [s1[1], s2[1]],
+        "Difficulty": [s1[2], s2[2]]
+    })
 
-    with col1:
-        st.subheader(skill)
-        st.metric("Score", f"{s1[0]}/100")
-        st.metric("Demand", f"{s1[1]}/100")
-        st.metric("Difficulty", f"{s1[2]}/100")
+    fig2 = px.bar(df2, x="Skill", y="Score", color="Skill", title="Skill Comparison")
+    st.plotly_chart(fig2)
 
-    with col2:
-        st.subheader(compare_skill)
-        st.metric("Score", f"{s2[0]}/100")
-        st.metric("Demand", f"{s2[1]}/100")
-        st.metric("Difficulty", f"{s2[2]}/100")
+    winner = skill if s1[0] > s2[0] else compare
 
-    st.markdown("---")
-
-    st.subheader("🏆 Verdict")
-
-    if s1[0] > s2[0]:
-        st.success(f"Recommended: {skill} 🚀")
-    else:
-        st.success(f"Recommended: {compare_skill} 🚀")
-
-else:
-    st.info("Enter a skill to compare in sidebar")
+    st.success(f"🏆 Recommended: {winner}")
