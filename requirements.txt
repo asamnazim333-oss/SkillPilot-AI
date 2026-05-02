@@ -2,3 +2,5 @@ streamlit
 groq
 youtube-search-python
 openai
+plotly
+pandas
