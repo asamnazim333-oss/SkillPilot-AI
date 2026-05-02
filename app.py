@@ -1,11 +1,12 @@
 import streamlit as st
 from openai import OpenAI
+import random
 
 # ================== CONFIG ==================
 st.set_page_config(page_title="SkillPilot AI", layout="wide")
 
 st.title("🌍 SkillPilot AI")
-st.markdown("AI-powered career decision & roadmap system 🤖")
+st.markdown("AI-powered Career Intelligence Platform 🤖")
 
 # ================== API ==================
 client = OpenAI(
@@ -25,11 +26,11 @@ def ask_ai(prompt):
     )
     return response.output_text
 
-# ================== INPUT ==================
+
+# ================== SIDEBAR ==================
 st.sidebar.header("🎯 Input")
 
 skill = st.sidebar.text_input("Enter Skill", "Web Development")
-compare_skill = st.sidebar.text_input("Compare Skill (optional)")
 
 interests = st.sidebar.multiselect(
     "Interests",
@@ -42,103 +43,131 @@ strengths = st.sidebar.multiselect(
 )
 
 generate = st.sidebar.button("🚀 Generate Analysis")
-show_test = st.sidebar.button("🧪 Skill Test Result")
 
-q1 = st.sidebar.radio("Problem Solving?", ["Yes", "No"])
-q2 = st.sidebar.radio("Creativity?", ["Yes", "No"])
-q3 = st.sidebar.radio("Math Comfort?", ["Yes", "No"])
 
-# ================== TABS ==================
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["🗺 Roadmap", "📊 Career Score", "📚 Resources", "🤖 Mentor", "🆚 Compare"]
-)
+# ================== MOCK REAL-WORLD DATA (IMPORTANT) ==================
+def get_market_data(skill):
+    data = {
+        "Web Development": (85, "High", "Medium"),
+        "AI": (95, "Very High", "Hard"),
+        "Cybersecurity": (90, "High", "Hard"),
+        "Data Science": (88, "High", "Medium"),
+    }
+    return data.get(skill, (75, "Medium", "Medium"))
 
-# ================== ROADMAP ==================
-with tab1:
-    if generate:
-        st.subheader("📍 Roadmap")
 
-        prompt = f"""
-        Create structured roadmap for {skill}:
-        Beginner → Intermediate → Advanced
-        Timeline: 3-6 months
-        """
+# ================== DASHBOARD ==================
+if generate:
 
-        st.markdown(ask_ai(prompt))
+    st.markdown("## 📊 Career Dashboard")
 
-# ================== CAREER SCORE ==================
-with tab2:
-    if generate:
-        st.subheader("📊 Career Analysis")
+    score, demand, difficulty = get_market_data(skill)
 
-        prompt = f"""
-        Analyze {skill}:
+    col1, col2, col3 = st.columns(3)
 
-        - Career Score (0-100)
-        - Demand
-        - Salary Range
-        - Future Scope
-        - Difficulty
-        """
+    col1.metric("Career Score", f"{score}/100")
+    col2.metric("Demand", demand)
+    col3.metric("Difficulty", difficulty)
 
-        st.markdown(ask_ai(prompt))
-
-# ================== RESOURCES ==================
-with tab3:
-    if generate:
-        st.subheader("📚 Learning Resources")
-
-        st.markdown(
-            f"👉 [YouTube Courses](https://www.youtube.com/results?search_query={skill}+full+course)"
-        )
-
-# ================== MENTOR ==================
-with tab4:
-    st.subheader("🤖 AI Mentor")
-
-    question = st.text_input("Ask anything")
-
-    if question:
-        prompt = f"""
-        Interests: {interests}
-        Strengths: {strengths}
-
-        Question: {question}
-        """
-
-        st.markdown(ask_ai(prompt))
-
-# ================== COMPARE ==================
-with tab5:
-    st.subheader("🆚 Comparison")
-
-    if generate and compare_skill:
-        prompt = f"""
-        Compare {skill} vs {compare_skill}:
-
-        - Demand
-        - Salary
-        - Difficulty
-        - Future Scope
-        """
-
-        st.markdown(ask_ai(prompt))
-
-    elif generate:
-        st.info("Enter a skill to compare")
-
-# ================== SKILL TEST ==================
-if show_test:
     st.markdown("---")
-    st.subheader("🧪 Skill Test Result")
 
-    prompt = f"""
-    Answers:
-    Problem Solving: {q1}
-    Creativity: {q2}
-    Math: {q3}
 
-    Suggest best career path and explain.
+    # ================== 📈 GRAPH SECTION ==================
+    st.subheader("📈 Career Insights Graph")
+
+    st.bar_chart({
+        "Demand": [score],
+        "Difficulty": [random.randint(40, 90)],
+        "Growth": [random.randint(60, 100)]
+    })
+
+    st.markdown("---")
+
+
+    # ================== 🧠 AI ROADMAP ==================
+    st.subheader("🗺 AI Roadmap")
+
+    roadmap_prompt = f"""
+    Create structured roadmap for {skill}:
+
+    Beginner → Intermediate → Advanced
+
+    Include:
+    - Skills
+    - Tools
+    - Projects
     """
 
-    st.markdown(ask_ai(prompt))
+    st.markdown(ask_ai(roadmap_prompt))
+
+    st.markdown("---")
+
+
+    # ================== 🧠 REASONING MODE ==================
+    st.subheader("🧠 AI Reasoning (Decision Engine)")
+
+    reasoning_prompt = f"""
+    Think step by step:
+
+    User:
+    Interests: {interests}
+    Strengths: {strengths}
+    Career: {skill}
+
+    1. Analyze user profile
+    2. Match with skill requirements
+    3. Check market demand
+    4. Evaluate difficulty
+    5. Give final recommendation with confidence score
+    """
+
+    st.markdown(ask_ai(reasoning_prompt))
+
+    st.markdown("---")
+
+
+    # ================== ⚠ DRAWBACKS ==================
+    st.subheader("⚠ Risks & Drawbacks")
+
+    drawback_prompt = f"""
+    List realistic drawbacks of {skill}:
+    - Competition
+    - Learning difficulty
+    - Time required
+    - Common mistakes
+    """
+
+    st.markdown(ask_ai(drawback_prompt))
+
+
+# ================== 🤖 MENTOR MODE ==================
+st.markdown("---")
+st.subheader("🤖 AI Mentor")
+
+question = st.text_input("Ask career question")
+
+if question:
+    mentor_prompt = f"""
+    You are a career mentor.
+
+    User Interests: {interests}
+    User Strengths: {strengths}
+
+    Question: {question}
+    """
+
+    st.markdown(ask_ai(mentor_prompt))
+
+
+# ================== 🌍 JOB INSIGHT ==================
+if generate:
+    st.markdown("---")
+    st.subheader("🌍 Job Market Insight")
+
+    st.info(f"""
+    📌 {skill} Career Outlook:
+    - Freelancing: High
+    - Remote Jobs: Medium-High
+    - Internship Availability: Good
+    - Global Demand: Increasing
+    """)
